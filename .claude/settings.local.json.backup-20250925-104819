@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mcp call conversation-search:*)",
+      "Read(//home/cordlesssteve/.local/bin/**)",
+      "Bash(python3:*)",
+      "Read(//home/cordlesssteve/**)",
+      "Bash(node:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

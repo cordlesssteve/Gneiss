@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gneiss - Rock Evolution</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid #4a90e2;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 900;
+            text-shadow: 0 0 20px #4a90e2;
+            background: linear-gradient(45deg, #4a90e2, #87ceeb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 20px auto;
+            padding: 0 20px;
+            min-height: calc(100vh - 150px);
+        }
+
+        .game-board {
+            flex: 1;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #4a90e2;
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+            position: relative;
+            overflow: auto;
+            max-height: 80vh;
+        }
+
+        .grid-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100%;
+        }
+
+        .hex-grid {
+            display: grid;
+            grid-template-columns: repeat(16, 35px);
+            gap: 1px;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .hex-cell {
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .hex-cell:hover {
+            transform: scale(1.15) translateZ(0);
+            z-index: 10;
+            box-shadow: 0 5px 15px rgba(255,255,255,0.4);
+        }
+
+        .hex-cell.can-absorb {
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); }
+            50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.9); }
+        }
+
+        .player {
+            background: radial-gradient(circle, #4a90e2 0%, #2171b5 100%);
+            color: white;
+            box-shadow: 0 0 20px #4a90e2;
+            border: 2px solid #87ceeb;
+        }
+
+        .granite {
+            background: radial-gradient(circle, #8b7355 0%, #654321 100%);
+            color: white;
+        }
+
+        .limestone {
+            background: radial-gradient(circle, #f5f5dc 0%, #d3d3d3 100%);
+            color: #333;
+        }
+
+        .iron {
+            background: radial-gradient(circle, #cd853f 0%, #8b4513 100%);
+            color: white;
+        }
+
+        .quartz {
+            background: radial-gradient(circle, #e6e6fa 0%, #dda0dd 100%);
+            color: #333;
+        }
+
+        .coal {
+            background: radial-gradient(circle, #2f4f4f 0%, #1c1c1c 100%);
+            color: white;
+        }
+
+        .obsidian {
+            background: radial-gradient(circle, #0f0f0f 0%, #2f2f2f 100%);
+            color: #8a2be2;
+        }
+
+        .miner {
+            background: radial-gradient(circle, #ff6b6b 0%, #cc0000 100%);
+            color: white;
+            animation: minerGlow 2s infinite alternate;
+        }
+
+        @keyframes minerGlow {
+            0% { box-shadow: 0 0 10px #ff6b6b; }
+            100% { box-shadow: 0 0 20px #ff0000; }
+        }
+
+        .empty {
+            background: rgba(51, 51, 51, 0.3);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .sidebar {
+            min-width: 380px;
+            max-width: 380px;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #4a90e2;
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(74, 144, 226, 0.3);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .stats {
+            margin-bottom: 25px;
+        }
+
+        .stats h3 {
+            margin: 0 0 15px 0;
+            color: #87ceeb;
+            text-shadow: 0 0 10px #4a90e2;
+        }
+
+        .stat-container {
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .stat-bar {
+            background: rgba(51, 51, 51, 0.8);
+            height: 25px;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 15px;
+            position: relative;
+        }
+
+        .stat-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+            border-radius: 15px 15px 0 0;
+        }
+
+        .hardness {
+            background: linear-gradient(45deg, #8b7355, #d2691e);
+        }
+
+        .mass {
+            background: linear-gradient(45deg, #4a90e2, #87ceeb);
+        }
+
+        .energy {
+            background: linear-gradient(45deg, #ffd700, #ffff99);
+        }
+
+        .controls {
+            margin-bottom: 25px;
+        }
+
+        .controls h3 {
+            margin: 0 0 15px 0;
+            color: #87ceeb;
+            text-shadow: 0 0 10px #4a90e2;
+        }
+
+        .controls button {
+            background: linear-gradient(45deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+            width: calc(50% - 10px);
+        }
+
+        .controls button:hover:not(:disabled) {
+            background: linear-gradient(45deg, #357abd, #2171b5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+        }
+
+        .controls button:disabled {
+            background: linear-gradient(45deg, #666, #555);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .ability-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .log {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(74, 144, 226, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            height: 250px;
+            overflow-y: auto;
+            font-size: 13px;
+            margin-top: 25px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .log::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .log::-webkit-scrollbar-thumb {
+            background: #4a90e2;
+            border-radius: 4px;
+        }
+
+        .composition {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .composition h4 {
+            grid-column: 1 / -1;
+            margin: 0 0 10px 0;
+            color: #87ceeb;
+            text-shadow: 0 0 10px #4a90e2;
+        }
+
+        .mineral-count {
+            background: rgba(74, 144, 226, 0.2);
+            border: 1px solid rgba(74, 144, 226, 0.5);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .mineral-count:hover {
+            background: rgba(74, 144, 226, 0.3);
+            transform: scale(1.05);
+        }
+
+        .evolution-tree {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(74, 144, 226, 0.3);
+        }
+
+        .evolution-tree h4 {
+            margin: 0 0 10px 0;
+            color: #87ceeb;
+            text-shadow: 0 0 10px #4a90e2;
+        }
+
+        .evolution-option {
+            padding: 8px;
+            margin: 5px 0;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .evolution-option:hover {
+            background: rgba(74, 144, 226, 0.3);
+        }
+
+        .evolution-option.available {
+            border: 1px solid #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .turn-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(74, 144, 226, 0.8);
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+        }
+
+        .damage-text {
+            position: absolute;
+            pointer-events: none;
+            font-weight: bold;
+            font-size: 14px;
+            color: #ff6b6b;
+            animation: damageFloat 1s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes damageFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-30px); opacity: 0; }
+        }
+
+        .level-indicator {
+            background: rgba(255, 215, 0, 0.8);
+            color: #000;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🪨 GNEISS</h1>
+        <p>Tactical Rock Evolution • Defend Your Mountain Home</p>
+    </div>
+
+    <div class="game-container">
+        <div class="game-board">
+            <div class="turn-counter" id="turnCounter">Turn 1</div>
+            <div class="grid-container">
+                <div class="hex-grid" id="gameGrid"></div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="level-indicator" id="levelIndicator">Level 1 Boulder</div>
+
+            <div class="stats">
+                <h3>Core Statistics</h3>
+
+                <div class="stat-container">
+                    <div class="stat-label">
+                        <span>Hardness</span>
+                        <span id="hardnessText">50/100</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill hardness" id="hardnessBar"></div>
+                    </div>
+                </div>
+
+                <div class="stat-container">
+                    <div class="stat-label">
+                        <span>Mass</span>
+                        <span id="massText">30/100</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill mass" id="massBar"></div>
+                    </div>
+                </div>
+
+                <div class="stat-container">
+                    <div class="stat-label">
+                        <span>Energy</span>
+                        <span id="energyText">20/100</span>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill energy" id="energyBar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="composition">
+                <h4>Mineral Composition</h4>
+                <div id="compositionDisplay"></div>
+            </div>
+
+            <div class="evolution-tree" id="evolutionTree">
+                <h4>Evolution Paths</h4>
+                <div id="evolutionOptions"></div>
+            </div>
+
+            <div class="controls">
+                <h3>Rock Actions</h3>
+                <button onclick="waitTurn()">Meditate</button>
+                <button onclick="nextTurn()">End Turn</button>
+
+                <div class="ability-grid" id="abilityGrid">
+                    <button onclick="useAbility('rockslide')" id="rockslideBtn" disabled>Rock Slide</button>
+                    <button onclick="useAbility('quartz-resonance')" id="quartzBtn" disabled>Resonance</button>
+                    <button onclick="useAbility('iron-magnetism')" id="ironBtn" disabled>Magnetism</button>
+                    <button onclick="useAbility('limestone-acid')" id="limestoneBtn" disabled>Acid Bath</button>
+                </div>
+
+                <button onclick="resetGame()" style="width: 100%; margin-top: 15px;">New Mountain</button>
+            </div>
+
+            <div class="log" id="gameLog"></div>
+        </div>
+    </div>
+
+    <script>
+        class GameState {
+            constructor() {
+                this.gridSize = 16;
+                this.grid = Array(this.gridSize).fill().map(() => Array(this.gridSize).fill('empty'));
+                this.playerPos = {x: 8, y: 12};
+                this.playerStats = {
+                    hardness: 50,
+                    mass: 30,
+                    energy: 20,
+                    maxStats: { hardness: 200, mass: 200, energy: 200 },
+                    composition: { boulder: 1 },
+                    level: 1,
+                    experience: 0,
+                    form: 'boulder'
+                };
+                this.miners = [];
+                this.turn = 0;
+                this.selectedCell = null;
+                this.abilities = new Set();
+                this.evolutionPaths = this.getEvolutionPaths();
+                this.gamePhase = 1;
+                this.minerWaves = 0;
+
+                this.initializeGrid();
+                this.spawnMiners();
+                this.updateAbilities();
+            }
+
+            getEvolutionPaths() {
+                return {
+                    'granite-path': {
+                        name: 'Granite Guardian',
+                        requirements: { granite: 3, mass: 60 },
+                        unlocks: ['rockslide', 'fortress-mode'],
+                        description: 'Tank specialization'
+                    },
+                    'quartz-path': {
+                        name: 'Crystal Resonator',
+                        requirements: { quartz: 3, energy: 60 },
+                        unlocks: ['quartz-resonance', 'energy-burst'],
+                        description: 'Energy specialist'
+                    },
+                    'iron-path': {
+                        name: 'Magnetic Core',
+                        requirements: { iron: 3, hardness: 70 },
+                        unlocks: ['iron-magnetism', 'metal-storm'],
+                        description: 'Tactical controller'
+                    },
+                    'limestone-path': {
+                        name: 'Chemical Warrior',
+                        requirements: { limestone: 3, energy: 50 },
+                        unlocks: ['limestone-acid', 'corrosion-field'],
+                        description: 'Area denial'
+                    },
+                    'obsidian-path': {
+                        name: 'Volcanic Reborn',
+                        requirements: { coal: 5, granite: 3, energy: 80 },
+                        unlocks: ['obsidian-shards', 'volcanic-eruption'],
+                        description: 'Ultimate evolution'
+                    }
+                };
+            }
+
+            initializeGrid() {
+                // Place player
+                this.grid[this.playerPos.y][this.playerPos.x] = 'player';
+
+                // Create mineral veins for more strategic placement
+                this.createMineralVein('granite', 8, {x: 2, y: 2});
+                this.createMineralVein('iron', 6, {x: 14, y: 3});
+                this.createMineralVein('quartz', 5, {x: 1, y: 13});
+                this.createMineralVein('limestone', 7, {x: 13, y: 12});
+                this.createMineralVein('coal', 4, {x: 8, y: 2});
+
+                // Scatter additional minerals
+                const minerals = ['granite', 'limestone', 'iron', 'quartz', 'coal'];
+                for (let i = 0; i < 25; i++) {
+                    let x, y;
+                    do {
+                        x = Math.floor(Math.random() * this.gridSize);
+                        y = Math.floor(Math.random() * this.gridSize);
+                    } while (this.grid[y][x] !== 'empty');
+
+                    this.grid[y][x] = minerals[Math.floor(Math.random() * minerals.length)];
+                }
+
+                // Add rare obsidian near center
+                for (let i = 0; i < 2; i++) {
+                    let x, y;
+                    do {
+                        x = 6 + Math.floor(Math.random() * 4);
+                        y = 6 + Math.floor(Math.random() * 4);
+                    } while (this.grid[y][x] !== 'empty');
+                    this.grid[y][x] = 'obsidian';
+                }
+            }
+
+            createMineralVein(mineral, count, center) {
+                for (let i = 0; i < count; i++) {
+                    let x = center.x + Math.floor(Math.random() * 5) - 2;
+                    let y = center.y + Math.floor(Math.random() * 5) - 2;
+
+                    x = Math.max(0, Math.min(this.gridSize - 1, x));
+                    y = Math.max(0, Math.min(this.gridSize - 1, y));
+
+                    if (this.grid[y][x] === 'empty') {
+                        this.grid[y][x] = mineral;
+                    }
+                }
+            }
+
+            spawnMiners() {
+                const spawnCount = Math.min(8, 3 + Math.floor(this.gamePhase / 2));
+
+                for (let i = 0; i < spawnCount; i++) {
+                    let x, y;
+                    const edge = Math.floor(Math.random() * 4);
+
+                    switch(edge) {
+                        case 0: x = 0; y = Math.floor(Math.random() * this.gridSize); break;
+                        case 1: x = this.gridSize - 1; y = Math.floor(Math.random() * this.gridSize); break;
+                        case 2: x = Math.floor(Math.random() * this.gridSize); y = 0; break;
+                        case 3: x = Math.floor(Math.random() * this.gridSize); y = this.gridSize - 1; break;
+                    }
+
+                    if (this.grid[y][x] === 'empty') {
+                        this.grid[y][x] = 'miner';
+                        this.miners.push({
+                            x, y,
+                            hp: 30 + (this.gamePhase * 10),
+                            maxHp: 30 + (this.gamePhase * 10),
+                            type: 'basic',
+                            stunned: false
+                        });
+                    }
+                }
+            }
+
+            getAdjacentCells(x, y, range = 1) {
+                const adjacent = [];
+                for (let dx = -range; dx <= range; dx++) {
+                    for (let dy = -range; dy <= range; dy++) {
+                        if (dx === 0 && dy === 0) continue;
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        if (nx >= 0 && nx < this.gridSize && ny >= 0 && ny < this.gridSize) {
+                            adjacent.push({x: nx, y: ny, type: this.grid[ny][nx]});
+                        }
+                    }
+                }
+                return adjacent;
+            }
+
+            canAbsorb(cellType) {
+                return ['granite', 'limestone', 'iron', 'quartz', 'coal', 'obsidian'].includes(cellType);
+            }
+
+            absorb(x, y) {
+                const cellType = this.grid[y][x];
+                if (!this.canAbsorb(cellType)) return false;
+
+                // Update composition
+                this.playerStats.composition[cellType] = (this.playerStats.composition[cellType] || 0) + 1;
+
+                // Update stats based on mineral with scaling
+                const mineralEffects = {
+                    granite: { hardness: 15, mass: 12, energy: 0 },
+                    limestone: { hardness: 8, mass: 10, energy: 8 },
+                    iron: { hardness: 18, mass: 15, energy: 0 },
+                    quartz: { hardness: 10, mass: 6, energy: 15 },
+                    coal: { hardness: 5, mass: 7, energy: 25 },
+                    obsidian: { hardness: 25, mass: 20, energy: 20 }
+                };
+
+                const effect = mineralEffects[cellType];
+                const maxStats = this.playerStats.maxStats;
+
+                this.playerStats.hardness = Math.min(maxStats.hardness, this.playerStats.hardness + effect.hardness);
+                this.playerStats.mass = Math.min(maxStats.mass, this.playerStats.mass + effect.mass);
+                this.playerStats.energy = Math.min(maxStats.energy, this.playerStats.energy + effect.energy);
+
+                // Gain experience
+                this.playerStats.experience += cellType === 'obsidian' ? 25 : 10;
+                this.checkLevelUp();
+
+                this.grid[y][x] = 'empty';
+                this.updateAbilities();
+                this.showFloatingText(`+${cellType}`, x, y, '#ffd700');
+                this.log(`Absorbed ${cellType}! Enhanced mineral matrix.`);
+
+                return true;
+            }
+
+            checkLevelUp() {
+                const expNeeded = this.playerStats.level * 50;
+                if (this.playerStats.experience >= expNeeded) {
+                    this.playerStats.level++;
+                    this.playerStats.experience -= expNeeded;
+
+                    // Increase max stats
+                    Object.keys(this.playerStats.maxStats).forEach(stat => {
+                        this.playerStats.maxStats[stat] += 20;
+                    });
+
+                    this.log(`🎉 EVOLVED TO LEVEL ${this.playerStats.level}! Max stats increased!`);
+                    this.updateAbilities();
+                }
+            }
+
+            updateAbilities() {
+                const comp = this.playerStats.composition;
+                const stats = this.playerStats;
+
+                // Update available abilities based on composition
+                this.abilities.clear();
+
+                if ((comp.granite || 0) >= 2) this.abilities.add('rockslide');
+                if ((comp.quartz || 0) >= 2) this.abilities.add('quartz-resonance');
+                if ((comp.iron || 0) >= 2) this.abilities.add('iron-magnetism');
+                if ((comp.limestone || 0) >= 2) this.abilities.add('limestone-acid');
+
+                // Check evolution paths
+                Object.entries(this.evolutionPaths).forEach(([pathId, path]) => {
+                    const requirements = path.requirements;
+                    let canEvolve = true;
+
+                    Object.entries(requirements).forEach(([req, amount]) => {
+                        if (req === 'hardness' || req === 'mass' || req === 'energy') {
+                            if (stats[req] < amount) canEvolve = false;
+                        } else {
+                            if ((comp[req] || 0) < amount) canEvolve = false;
+                        }
+                    });
+
+                    if (canEvolve && !this.abilities.has(pathId)) {
+                        this.abilities.add(pathId);
+                        this.log(`🌟 Evolution path unlocked: ${path.name}!`);
+                    }
+                });
+            }
+
+            moveMiners() {
+                this.miners.forEach(miner => {
+                    if (miner.stunned) {
+                        miner.stunned = false;
+                        return;
+                    }
+
+                    // Enhanced AI: prioritize getting closer to player
+                    const dx = this.playerPos.x - miner.x;
+                    const dy = this.playerPos.y - miner.y;
+                    const distance = Math.abs(dx) + Math.abs(dy);
+
+                    let moveX = miner.x;
+                    let moveY = miner.y;
+
+                    // Move toward player intelligently
+                    if (Math.abs(dx) > Math.abs(dy)) {
+                        moveX += dx > 0 ? 1 : -1;
+                    } else {
+                        moveY += dy > 0 ? 1 : -1;
+                    }
+
+                    // Check if move is valid
+                    if (moveX >= 0 && moveX < this.gridSize && moveY >= 0 && moveY < this.gridSize) {
+                        if (this.grid[moveY][moveX] === 'empty') {
+                            this.grid[miner.y][miner.x] = 'empty';
+                            miner.x = moveX;
+                            miner.y = moveY;
+                            this.grid[moveY][moveX] = 'miner';
+                        } else if (this.grid[moveY][moveX] === 'player') {
+                            // Attack player
+                            const baseDamage = 20 + (this.gamePhase * 5);
+                            const damage = Math.max(1, baseDamage - Math.floor(this.playerStats.hardness / 3));
+                            this.playerStats.hardness = Math.max(0, this.playerStats.hardness - damage);
+                            this.showFloatingText(`-${damage}`, this.playerPos.x, this.playerPos.y, '#ff6b6b');
+                            this.log(`⚔️ Miner dealt ${damage} damage! (${this.playerStats.hardness} hardness remaining)`);
+                        }
+                    }
+                });
+            }
+
+            useAbility(abilityName) {
+                if (!this.abilities.has(abilityName)) return false;
+
+                switch(abilityName) {
+                    case 'rockslide':
+                        return this.useRockSlide();
+                    case 'quartz-resonance':
+                        return this.useQuartzResonance();
+                    case 'iron-magnetism':
+                        return this.useIronMagnetism();
+                    case 'limestone-acid':
+                        return this.useLimestoneAcid();
+                    default:
+                        if (this.evolutionPaths[abilityName]) {
+                            return this.evolveForm(abilityName);
+                        }
+                        return false;
+                }
+            }
+
+            useRockSlide() {
+                if (this.playerStats.energy < 25) return false;
+
+                this.playerStats.energy -= 25;
+                const adjacent = this.getAdjacentCells(this.playerPos.x, this.playerPos.y, 2);
+
+                let hitCount = 0;
+                adjacent.forEach(cell => {
+                    if (cell.type === 'miner') {
+                        const miner = this.miners.find(m => m.x === cell.x && m.y === cell.y);
+                        if (miner) {
+                            miner.hp -= 40;
+                            this.showFloatingText('-40', cell.x, cell.y, '#ff6b6b');
+                            if (miner.hp <= 0) {
+                                this.grid[cell.y][cell.x] = 'empty';
+                                this.miners = this.miners.filter(m => m !== miner);
+                                hitCount++;
+                            }
+                        }
+                    }
+                });
+
+                this.log(`🪨 Rock Slide devastated ${hitCount} miners!`);
+                return true;
+            }
+
+            useQuartzResonance() {
+                if (this.playerStats.energy < 20) return false;
+
+                this.playerStats.energy -= 20;
+
+                // Stun all miners within range
+                this.miners.forEach(miner => {
+                    const distance = Math.abs(miner.x - this.playerPos.x) + Math.abs(miner.y - this.playerPos.y);
+                    if (distance <= 4) {
+                        miner.stunned = true;
+                        this.showFloatingText('STUN', miner.x, miner.y, '#e6e6fa');
+                    }
+                });
+
+                this.log(`🔮 Quartz Resonance stunned nearby miners!`);
+                return true;
+            }
+
+            useIronMagnetism() {
+                if (this.playerStats.energy < 30) return false;
+
+                this.playerStats.energy -= 30;
+
+                // Pull miners closer and damage them
+                this.miners.forEach(miner => {
+                    const dx = this.playerPos.x - miner.x;
+                    const dy = this.playerPos.y - miner.y;
+
+                    if (Math.abs(dx) + Math.abs(dy) <= 6) {
+                        // Pull toward player
+                        const newX = miner.x + Math.sign(dx);
+                        const newY = miner.y + Math.sign(dy);
+
+                        if (this.grid[newY] && this.grid[newY][newX] === 'empty') {
+                            this.grid[miner.y][miner.x] = 'empty';
+                            miner.x = newX;
+                            miner.y = newY;
+                            this.grid[newY][newX] = 'miner';
+                        }
+
+                        miner.hp -= 15;
+                        this.showFloatingText('-15', miner.x, miner.y, '#cd853f');
+
+                        if (miner.hp <= 0) {
+                            this.grid[miner.y][miner.x] = 'empty';
+                        }
+                    }
+                });
+
+                this.miners = this.miners.filter(m => m.hp > 0);
+                this.log(`🧲 Iron Magnetism pulled and crushed miners!`);
+                return true;
+            }
+
+            useLimestoneAcid() {
+                if (this.playerStats.energy < 35) return false;
+
+                this.playerStats.energy -= 35;
+
+                // Create acid field around player
+                const adjacent = this.getAdjacentCells(this.playerPos.x, this.playerPos.y, 2);
+
+                adjacent.forEach(cell => {
+                    if (cell.type === 'miner') {
+                        const miner = this.miners.find(m => m.x === cell.x && m.y === cell.y);
+                        if (miner) {
+                            miner.hp -= 30;
+                            this.showFloatingText('-30 ACID', cell.x, cell.y, '#90EE90');
+                            if (miner.hp <= 0) {
+                                this.grid[cell.y][cell.x] = 'empty';
+                            }
+                        }
+                    }
+                });
+
+                this.miners = this.miners.filter(m => m.hp > 0);
+                this.log(`🧪 Limestone Acid dissolved nearby threats!`);
+                return true;
+            }
+
+            evolveForm(pathId) {
+                const path = this.evolutionPaths[pathId];
+                this.playerStats.form = path.name;
+                this.playerStats.level += 2;
+
+                // Add all unlocked abilities
+                path.unlocks.forEach(ability => this.abilities.add(ability));
+
+                this.log(`🌟 EVOLUTION COMPLETE: ${path.name}! New abilities unlocked!`);
+                return true;
+            }
+
+            showFloatingText(text, x, y, color) {
+                const gameBoard = document.querySelector('.game-board');
+                const textElement = document.createElement('div');
+                textElement.className = 'damage-text';
+                textElement.textContent = text;
+                textElement.style.color = color;
+                textElement.style.left = `${x * 36 + 200}px`;
+                textElement.style.top = `${y * 36 + 100}px`;
+
+                gameBoard.appendChild(textElement);
+
+                setTimeout(() => {
+                    if (textElement.parentNode) {
+                        textElement.parentNode.removeChild(textElement);
+                    }
+                }, 1000);
+            }
+
+            log(message) {
+                const logDiv = document.getElementById('gameLog');
+                const time = new Date().toLocaleTimeString();
+                logDiv.innerHTML += `<div><span style="opacity: 0.6;">[T${this.turn}]</span> ${message}</div>`;
+                logDiv.scrollTop = logDiv.scrollHeight;
+            }
+
+            checkGameOver() {
+                if (this.playerStats.hardness <= 0) {
+                    this.log("💀 MOUNTAIN CORE DEPLETED! The miners have succeeded...");
+                    return true;
+                }
+                if (this.miners.length === 0) {
+                    this.gamePhase++;
+                    this.minerWaves++;
+
+                    if (this.minerWaves >= 5) {
+                        this.log("🏆 ULTIMATE VICTORY! Your mountain stands eternal!");
+                        return true;
+                    } else {
+                        this.log(`🎯 Wave ${this.minerWaves} complete! Preparing for Phase ${this.gamePhase}...`);
+                        setTimeout(() => this.spawnMiners(), 1000);
+                    }
+                }
+                return false;
+            }
+        }
+
+        let game = new GameState();
+
+        function renderGrid() {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = '';
+
+            for (let y = 0; y < game.gridSize; y++) {
+                for (let x = 0; x < game.gridSize; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = `hex-cell ${game.grid[y][x]}`;
+                    cell.onclick = () => cellClicked(x, y);
+
+                    // Display appropriate symbol
+                    const symbols = {
+                        player: 'B',
+                        granite: 'G',
+                        limestone: 'L',
+                        iron: 'I',
+                        quartz: 'Q',
+                        coal: 'C',
+                        obsidian: 'O',
+                        miner: 'M',
+                        empty: ''
+                    };
+
+                    cell.textContent = symbols[game.grid[y][x]];
+
+                    // Highlight adjacent cells if they can be absorbed
+                    if (game.canAbsorb(game.grid[y][x])) {
+                        const adjacent = game.getAdjacentCells(game.playerPos.x, game.playerPos.y);
+                        if (adjacent.some(adj => adj.x === x && adj.y === y)) {
+                            cell.classList.add('can-absorb');
+                        }
+                    }
+
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function renderStats() {
+            const stats = game.playerStats;
+            const maxStats = stats.maxStats;
+
+            // Update turn counter
+            document.getElementById('turnCounter').textContent = `Turn ${game.turn} • Phase ${game.gamePhase}`;
+
+            // Update level indicator
+            document.getElementById('levelIndicator').textContent =
+                `Level ${stats.level} ${stats.form} (${stats.experience}/${stats.level * 50} XP)`;
+
+            // Update stat bars with proper scaling
+            document.getElementById('hardnessBar').style.width = `${(stats.hardness / maxStats.hardness) * 100}%`;
+            document.getElementById('hardnessText').textContent = `${stats.hardness}/${maxStats.hardness}`;
+
+            document.getElementById('massBar').style.width = `${(stats.mass / maxStats.mass) * 100}%`;
+            document.getElementById('massText').textContent = `${stats.mass}/${maxStats.mass}`;
+
+            document.getElementById('energyBar').style.width = `${(stats.energy / maxStats.energy) * 100}%`;
+            document.getElementById('energyText').textContent = `${stats.energy}/${maxStats.energy}`;
+
+            // Render composition
+            const compDiv = document.getElementById('compositionDisplay');
+            compDiv.innerHTML = '';
+            Object.entries(stats.composition).forEach(([mineral, count]) => {
+                if (mineral !== 'boulder' || count > 1) {
+                    const span = document.createElement('span');
+                    span.className = 'mineral-count';
+                    span.textContent = `${mineral}: ${count}`;
+                    compDiv.appendChild(span);
+                }
+            });
+
+            // Update ability buttons
+            document.getElementById('rockslideBtn').disabled = !game.abilities.has('rockslide') || stats.energy < 25;
+            document.getElementById('quartzBtn').disabled = !game.abilities.has('quartz-resonance') || stats.energy < 20;
+            document.getElementById('ironBtn').disabled = !game.abilities.has('iron-magnetism') || stats.energy < 30;
+            document.getElementById('limestoneBtn').disabled = !game.abilities.has('limestone-acid') || stats.energy < 35;
+
+            // Update ability button text with energy costs
+            document.getElementById('rockslideBtn').textContent = `Rock Slide (25)`;
+            document.getElementById('quartzBtn').textContent = `Resonance (20)`;
+            document.getElementById('ironBtn').textContent = `Magnetism (30)`;
+            document.getElementById('limestoneBtn').textContent = `Acid Bath (35)`;
+        }
+
+        function renderEvolutionTree() {
+            const evolutionDiv = document.getElementById('evolutionOptions');
+            evolutionDiv.innerHTML = '';
+
+            Object.entries(game.evolutionPaths).forEach(([pathId, path]) => {
+                const option = document.createElement('div');
+                option.className = 'evolution-option';
+
+                if (game.abilities.has(pathId)) {
+                    option.classList.add('available');
+                    option.onclick = () => {
+                        if (game.useAbility(pathId)) {
+                            renderAll();
+                        }
+                    };
+                }
+
+                const reqText = Object.entries(path.requirements)
+                    .map(([req, amount]) => `${req}: ${amount}`)
+                    .join(', ');
+
+                option.innerHTML = `
+                    <strong>${path.name}</strong><br>
+                    <small>${path.description}</small><br>
+                    <small>Requires: ${reqText}</small>
+                `;
+
+                evolutionDiv.appendChild(option);
+            });
+        }
+
+        function cellClicked(x, y) {
+            const cellType = game.grid[y][x];
+
+            // Check if it's adjacent to player and can be absorbed
+            const adjacent = game.getAdjacentCells(game.playerPos.x, game.playerPos.y);
+            const isAdjacent = adjacent.some(adj => adj.x === x && adj.y === y);
+
+            if (isAdjacent && game.canAbsorb(cellType)) {
+                game.absorb(x, y);
+                renderAll();
+            }
+        }
+
+        function waitTurn() {
+            const energyGain = 15 + Math.floor(game.playerStats.level / 2);
+            game.playerStats.energy = Math.min(game.playerStats.maxStats.energy,
+                game.playerStats.energy + energyGain);
+            game.log(`🧘 Meditated and gained ${energyGain} energy.`);
+            nextTurn();
+        }
+
+        function useAbility(abilityName) {
+            if (game.useAbility(abilityName)) {
+                renderAll();
+                nextTurn();
+            }
+        }
+
+        function nextTurn() {
+            game.turn++;
+            game.moveMiners();
+
+            // Escalating spawn mechanics
+            if (game.turn % (8 - Math.floor(game.gamePhase / 2)) === 0 && game.miners.length < 12) {
+                game.spawnMiners();
+            }
+
+            if (game.checkGameOver()) {
+                return;
+            }
+
+            renderAll();
+        }
+
+        function resetGame() {
+            game = new GameState();
+            renderAll();
+            game.log("🏔️ A new mountain awakens! The miners approach...");
+        }
+
+        function renderAll() {
+            renderGrid();
+            renderStats();
+            renderEvolutionTree();
+        }
+
+        // Initialize the game
+        renderAll();
+        game.log("🏔️ Ancient mountain consciousness awakens!");
+        game.log("💎 Click adjacent minerals to absorb them into your core.");
+        game.log("⚔️ Defend against the Gilded Pickaxe Guild miners!");
+        game.log("🌟 Collect minerals to unlock evolution paths and abilities.");
+    </script>
+</body>
+</html>

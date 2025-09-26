@@ -1,0 +1,10 @@
+Project 1 Gneiss
+This will be the name we reserve for the original concept.
+
+Core Mechanic A 2D, hex-grid, cross-section of a mountain.
+
+Gameplay You are an amorphous, evolving rock entity that grows by absorbing adjacent terrain. It's a highly tactical, turn-based roguelike focused on positioning and survival, like a tower defense of one.
+
+Inspirations Into the Breach, Slay the Spire.
+
+Keywords Tactical, 2D, Roguelike, Defensive, Amorphous, Positional.
