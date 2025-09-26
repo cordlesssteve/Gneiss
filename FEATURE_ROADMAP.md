@@ -7,7 +7,11 @@
 - Metamorphosis skill tree with crystalline lattice visualization
 - Hex-grid 2D mountain cross-section map
 - Meta-progression with Core Fragments and Heart-Stone Chamber
+  - **Design Note**: Core Fragment rewards should scale with run progress/depth achieved
 - Victory conditions: Dormancy (survival), Eruption, Heart of Mountain
+- **Geode Sacrifice System**: Allied geodes willingly sacrifice themselves to aid the LithoLord
+  - Geode opening as randomized reward mechanism after victories/completions
+  - Adds narrative element of willing allies vs. hostile miners
 
 ## Major Expansions
 
@@ -53,6 +57,32 @@
 - **Art Pipeline**: Metamorphic rock texture system for visual evolution
 - **Audio**: Geological sound design (rumbles, crystal chimes, mining sounds)
 - **Accessibility**: Colorblind-friendly mineral identification systems
+
+## Gameplay Engagement Questions
+**Multi-hex Absorption**: Should absorption scale (multiple hexes under certain conditions)?
+- Possible triggers: High energy, specific mineral combos, metamorphosis unlocks
+
+**Active Rock Abilities** - Immediate tactical opportunities:
+- **Tremor**: Knock miners back/stun (requires absorbed granite mass)
+- **Spike Burst**: Ranged crystal projectiles (quartz integration)
+- **Magnetic Pull/Push**: Move enemies or metal objects (iron/lodestone)
+- **Terrain Shift**: Temporarily raise/lower hex elevations
+- **Fissure**: Create temporary chasms that block movement
+
+**Explosive One-Time Abilities** vs. permanent stats:
+- **Coal Ignition**: Sacrifice coal composition for massive area damage
+- **Crystal Shatter**: Break off quartz pieces as high-damage projectiles
+- **Iron Shrapnel**: Explosive metal fragments in all directions
+- **Limestone Dissolution**: Create acid pools that damage over time
+
+**Dynamic Map Systems**:
+- Geological instability - certain areas collapse/shift over time
+- Seasonal changes affect mineral availability and enemy behavior
+- Player actions trigger environmental changes (absorption causes settling, abilities cause fractures)
+- **Map Memory/Revisiting**: Procedurally generated maps that can be revisited and reincorporated
+  - Terrain shaped by previous runs could influence future encounters
+  - Player's geological "footprint" persists across runs in some form
+  - Potential for maps to evolve based on collective player actions
 
 ## Monetization Considerations (If Commercial)
 - **Base Game**: Core rock campaign
